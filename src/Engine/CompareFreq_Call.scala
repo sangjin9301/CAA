@@ -1,18 +1,17 @@
 package Engine
 
-import java.util.HashMap
-import scala.collection.mutable.ArrayBuffer
-import org.apache.commons.math3.distribution.NormalDistribution
 import org.apache.commons.math3.distribution.TDistribution
+import org.apache.commons.math3.distribution.NormalDistribution
+import scala.collection.mutable.ArrayBuffer
+import java.util.HashMap
 
-class CompareFreq_Location {
-
-  def compare: Double =
+class CompareFreq_Call {
+   def compare: Double =
     {
-      if(Store.LocationArray_Base.isEmpty){println("Base Location data is Empty.");return 0}
-      if(Store.LocationArray_Req.isEmpty){println("Request Location data is Empty.");return 0}
-      var baseMap = getFrequency(Store.LocationArray_Base)
-      var reqMap = getFrequency(Store.LocationArray_Req)
+      if(Store.CallArray_Base.isEmpty){println("Base Call data is Empty.");return 0}
+      if(Store.CallArray_Req.isEmpty){println("Request Call data is Empty.");return 0}
+      var baseMap = getFrequency(Store.CallArray_Base)
+      var reqMap = getFrequency(Store.CallArray_Req)
       var i: Int = 1
       var returnArray = new ArrayBuffer[ArrayBuffer[Double]]
       while (i < 8) 
@@ -24,7 +23,7 @@ class CompareFreq_Location {
           var oneDay_base = baseMap.get(i)
           var oneDay_req = reqMap.get(i)
 
-          oneDay_req.forEach((key: Double, value: Double) =>
+          oneDay_req.forEach((key: String, value: Double) =>
             if (oneDay_base.containsKey(key)) 
             {
               var result = oneDay_req.get(key) - oneDay_base.get(key)
@@ -47,9 +46,9 @@ class CompareFreq_Location {
       return sum/Score.size
     }
 
-  def getDataByDOW(arr: Array[Location], DOW: Int): Array[Location] =
+  def getDataByDOW(arr: Array[CDR], DOW: Int): Array[CDR] =
     {
-      var dowArray = new ArrayBuffer[Location]
+      var dowArray = new ArrayBuffer[CDR]
       var i: Int = 0
       while (i < arr.length) 
       {
@@ -60,19 +59,19 @@ class CompareFreq_Location {
       return dowArray.toArray
     }
 
-  def getFrequency(arr: Array[Location]): HashMap[Int, HashMap[Double, Double]] =
+  def getFrequency(arr: Array[CDR]): HashMap[Int, HashMap[String, Double]] =
     {
-      var dowMap = new HashMap[Int, HashMap[Double, Double]]
+      var dowMap = new HashMap[Int, HashMap[String, Double]]
       var i: Int = 1
       var j: Int = 0
       while (i < 8) 
       {
-        var freqMap = new HashMap[Double, Double]
-        var dailyLocation = getDataByDOW(arr, i)
-        if (dailyLocation.isEmpty){} //println("i has null data")
-        while (j < dailyLocation.length) 
+        var freqMap = new HashMap[String, Double]
+        var dailyCall = getDataByDOW(arr, i)
+        if (dailyCall.isEmpty){} //println("i has null data")
+        while (j < dailyCall.length) 
         {
-          var key = dailyLocation(j).getLatitude
+          var key = dailyCall(j).getTarget
           if (freqMap.containsKey(key)) 
           {
             freqMap.put(key, freqMap.get(key) + 1)
@@ -81,8 +80,8 @@ class CompareFreq_Location {
           j += 1
         }
         var whole: Double = 0
-        freqMap.forEach((key: Double, value: Double) => whole += value)
-        freqMap.forEach((key: Double, value: Double) => freqMap.put(key, value / whole * 100))
+        freqMap.forEach((key: String, value: Double) => whole += value)
+        freqMap.forEach((key: String, value: Double) => freqMap.put(key, value / whole * 100))
         dowMap.put(i, freqMap)
         i += 1
       }
@@ -141,5 +140,4 @@ class CompareFreq_Location {
     }
     return score
   }
-
 }

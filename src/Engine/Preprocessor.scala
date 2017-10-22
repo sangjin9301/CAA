@@ -33,6 +33,19 @@ class Preprocessor {
         println("Type : Request,    UserKey : "+userKey)
       }
     }
+    else if(dataType.equals("phoneCall"))
+    {
+      if(isbase)
+      {
+        Store.CallArray_Base = getPhoneCall(userKey)
+        println("Type : Base,       UserKey : "+userKey)
+      }
+      else
+      {
+        Store.CallArray_Req = getPhoneCall(userKey)
+        println("Type : Request,    UserKey : "+userKey)
+      }
+    }
 //    else if(dataType.equals("phoneCall"))
 //    {
 //      
@@ -67,8 +80,32 @@ class Preprocessor {
     return datas
   }
   
-//  def getPhoneCall(userKey:String):Array[CDR]=
-//  {
-//    
-//  }
+  def getPhoneCall(userKey:String):Array[CDR]=
+  {
+    setUser(userKey)
+    var query = url + "types=phoneCall" + "&userKey=" + this.userKey 
+    var html = Source.fromURL(query)
+    var s = "{phoneCall:"+html.mkString+"}"
+    var jObject = new JSONObject(s);
+    var JSArray = jObject.getJSONArray("phoneCall");
+    
+    var i:Int = 0
+    var datas:Array[CDR] = new Array[CDR](JSArray.length)
+    
+    while(i<JSArray.length())
+    {
+      var cdr = new CDR()
+      var loc = JSArray.getJSONObject(i);
+      var locData = loc.getJSONObject("data");
+      var info = new JSONObject(locData.toString)
+      
+      cdr.setTimestamp(info.get("timestamp").toString().toDouble)
+      cdr.setTarget(info.get("targetName").toString())
+      cdr.setDuration(info.get("duration").toString().toDouble)
+      datas(i) = cdr
+      i += 1
+    }
+    
+    return datas
+  }
 }
